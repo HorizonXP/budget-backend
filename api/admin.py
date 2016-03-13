@@ -1,13 +1,14 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from guardian.admin import GuardedModelAdmin
 
 from .models import Family, Member
 
 class MemberAdminInline(admin.TabularInline):
     model = Member
 
-class FamilyAdmin(admin.ModelAdmin):
+class FamilyAdmin(GuardedModelAdmin):
     model = Family
 
 class UserAdmin(UserAdmin):

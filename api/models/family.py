@@ -9,3 +9,6 @@ class Family(models.Model):
     class Meta:
         app_label = 'api'
         verbose_name_plural = "Families"
+        permissions = (
+            ('view_family', 'Can view family'),
+        )

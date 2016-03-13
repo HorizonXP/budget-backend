@@ -12,5 +12,3 @@ class Member(models.Model):
                'Family',
                related_name='members'
              )
-            
-
