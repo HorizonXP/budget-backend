@@ -1,4 +1,4 @@
-from rest_framework.serializers import ModelSerializer, CharField, ValidationError
+from rest_framework.serializers import ModelSerializer, CharField, ValidationError, SerializerMethodField
 from django.contrib.auth import get_user_model
 
 class UserSerializer(ModelSerializer):
@@ -26,6 +26,13 @@ class UserSerializer(ModelSerializer):
         help_text="Re-enter your new password.",
         style={'input_type': 'password'}
     )
+    family = SerializerMethodField()
+
+    def get_family(self, obj):
+        from .family import FamilySerializer
+        from api.models import Member
+        member = Member.objects.get(user=obj)
+        return FamilySerializer(member.family).data
 
     def validate(self, data):
         current_password = data['current_password'] if 'current_password' in data else None
@@ -69,5 +76,5 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'first_name', 'last_name', 'current_password', 'new_password1', 'new_password2')
+        fields = ('id', 'username', 'first_name', 'last_name', 'family', 'current_password', 'new_password1', 'new_password2')
 
