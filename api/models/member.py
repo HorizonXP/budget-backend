@@ -4,6 +4,7 @@ from django.conf import settings
 class Member(models.Model):
     dependent = models.BooleanField(default=False)
     provider = models.BooleanField(default=False)
+    birthday = models.DateField()
     user = models.OneToOneField(
              settings.AUTH_USER_MODEL,
              on_delete=models.CASCADE

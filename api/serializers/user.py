@@ -1,5 +1,6 @@
-from rest_framework.serializers import ModelSerializer, CharField, ValidationError, SerializerMethodField
+from rest_framework.serializers import ModelSerializer, CharField, DateField, ValidationError, SerializerMethodField
 from django.contrib.auth import get_user_model
+from .member import MemberSerializer
 
 class UserSerializer(ModelSerializer):
     current_password = CharField(
@@ -27,12 +28,14 @@ class UserSerializer(ModelSerializer):
         style={'input_type': 'password'}
     )
     family = SerializerMethodField()
+    birthday = DateField(source='member.birthday', required=False, format='%d/%m/%Y', input_formats=['%d/%m/%Y'])
 
     def get_family(self, obj):
         from .family import FamilySerializer
-        from api.models import Member
-        member = Member.objects.get(user=obj)
-        return FamilySerializer(member.family).data
+        if (obj.member):
+            return FamilySerializer(obj.member.family).data
+        else:
+            return None
 
     def validate(self, data):
         current_password = data['current_password'] if 'current_password' in data else None
@@ -63,6 +66,11 @@ class UserSerializer(ModelSerializer):
         current_password = validated_data['current_password'] if 'current_password' in validated_data else None
         new_password1 = validated_data['new_password1'] if 'new_password1' in validated_data else None
         new_password2 = validated_data['new_password2'] if 'new_password2' in validated_data else None
+        member = validated_data['member'] if 'member' in validated_data else None
+        birthday = None
+        if member:
+            birthday = member['birthday'] if 'birthday' in member else None
+            del validated_data['member']
         if current_password is not None:
             if instance.check_password(current_password):
                 instance.set_password(new_password1)
@@ -71,10 +79,13 @@ class UserSerializer(ModelSerializer):
                 raise ValidationError({
                     'current_password': "You entered the wrong password."
                 })
+        if birthday:
+            instance.member.birthday = birthday
+            instance.member.save()
         return super(UserSerializer, self).update(instance, validated_data)
 
 
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'family', 'current_password', 'new_password1', 'new_password2')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'birthday', 'family', 'current_password', 'new_password1', 'new_password2')
 
